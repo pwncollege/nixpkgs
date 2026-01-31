@@ -14246,6 +14246,8 @@ self: super: with self; {
 
   pypca = callPackage ../development/python-modules/pypca { };
 
+  pypcode = callPackage ../development/python-modules/pypcode { };
+
   pypck = callPackage ../development/python-modules/pypck { };
 
   pypdf = callPackage ../development/python-modules/pypdf { };
@@ -15967,6 +15969,8 @@ self: super: with self; {
   pyxbe = callPackage ../development/python-modules/pyxbe { };
 
   pyxdg = callPackage ../development/python-modules/pyxdg { };
+
+  pyxdia = callPackage ../development/python-modules/pyxdia { };
 
   pyxeoma = callPackage ../development/python-modules/pyxeoma { };
 
@@ -20028,6 +20032,8 @@ self: super: with self; {
   ueberzug = callPackage ../development/python-modules/ueberzug {
     inherit (pkgs) libx11 libxext;
   };
+
+  uefi-firmware = callPackage ../development/python-modules/uefi-firmware { };
 
   ufal-chu-liu-edmonds = callPackage ../development/python-modules/ufal-chu-liu-edmonds { };
 

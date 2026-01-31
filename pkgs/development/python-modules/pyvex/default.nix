@@ -1,29 +1,41 @@
 {
   lib,
-  stdenv,
   bitstring,
   buildPythonPackage,
   buildPackages,
   cffi,
-  fetchPypi,
+  fetchFromGitHub,
   pycparser,
   pythonOlder,
-  setuptools,
+  # build-system
+  scikit-build-core,
+  cmake,
+  ninja,
 }:
 
 buildPythonPackage rec {
   pname = "pyvex";
-  version = "9.2.154";
+  version = "9.2.196";
   pyproject = true;
 
-  disabled = pythonOlder "3.11";
+  disabled = pythonOlder "3.10";
 
-  src = fetchPypi {
-    inherit pname version;
-    hash = "sha256-a3ei2w66v18QKAofpPvDUoM42zHRHPrNQic+FE+rLKY=";
+  src = fetchFromGitHub {
+    owner = "angr";
+    repo = "pyvex";
+    tag = "v${version}";
+    hash = "sha256-DiH5pDU4BsHBqN1DVrXrpkOaXp7dZ3GTEdQpDIGYo04=";
+    fetchSubmodules = true;
   };
 
-  build-system = [ setuptools ];
+  build-system = [
+    scikit-build-core
+    cmake
+    ninja
+    cffi
+  ];
+
+  dontUseCmakeConfigure = true;
 
   dependencies = [
     bitstring
@@ -32,24 +44,6 @@ buildPythonPackage rec {
   ];
 
   depsBuildBuild = [ buildPackages.stdenv.cc ];
-
-  nativeBuildInputs = [ cffi ];
-
-  postPatch = lib.optionalString stdenv.hostPlatform.isDarwin ''
-    substituteInPlace vex/Makefile-gcc \
-      --replace-fail '/usr/bin/ar' 'ar'
-  '';
-
-  setupPyBuildFlags = lib.optionals stdenv.hostPlatform.isLinux [
-    "--plat-name"
-    "linux"
-  ];
-
-  preBuild = ''
-    export CC=${stdenv.cc.targetPrefix}cc
-    substituteInPlace pyvex_c/Makefile \
-      --replace-fail 'AR=ar' 'AR=${stdenv.cc.targetPrefix}ar'
-  '';
 
   # No tests are available on PyPI, GitHub release has tests
   # Switch to GitHub release after all angr parts are present

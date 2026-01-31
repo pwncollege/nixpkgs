@@ -1,76 +1,92 @@
 {
   lib,
   stdenv,
-  ailment,
   archinfo,
   buildPythonPackage,
+  cargo,
   cachetools,
   capstone,
   cffi,
   claripy,
   cle,
-  cppheaderparser,
   cxxheaderparser,
-  dpkt,
   fetchFromGitHub,
   gitpython,
-  itanium-demangler,
+  keystone-engine,
+  lmdb,
+  makeWrapper,
+  msgspec,
   mulpyplexer,
-  nampa,
   networkx,
-  progressbar2,
+  opentelemetry-api,
+  pypcode,
   protobuf,
   psutil,
   pycparser,
   pyformlang,
   pydemumble,
+  python,
   pythonOlder,
   pyvex,
   rich,
-  rpyc,
+  rustPlatform,
+  rustc,
   setuptools,
+  setuptools-rust,
   sortedcontainers,
   sqlalchemy,
   sympy,
+  typing-extensions,
   unicorn-angr,
   unique-log-filter,
 }:
 
 buildPythonPackage rec {
   pname = "angr";
-  version = "9.2.154";
+  version = "9.2.196";
   pyproject = true;
 
-  disabled = pythonOlder "3.11";
+  disabled = pythonOlder "3.10";
 
   src = fetchFromGitHub {
     owner = "angr";
     repo = "angr";
     tag = "v${version}";
-    hash = "sha256-aOgZXHk6GTWZAEraZQahEXUYs8LWAWv1n9GfX+2XTPU=";
+    hash = "sha256-yE/JFsPn9mOESw1RJCECFEnxgh4flu99nJ8ggDGJsp8=";
   };
 
-  pythonRelaxDeps = [ "capstone" ];
+  cargoDeps = rustPlatform.fetchCargoVendor {
+    inherit pname version src;
+    hash = "sha256-98DOl1POmqvKYHd490EOnEUSwzdUj8HGF78pD8scbPI=";
+  };
 
-  build-system = [ setuptools ];
+  nativeBuildInputs = [
+    rustPlatform.cargoSetupHook
+    cargo
+    rustc
+    makeWrapper
+  ];
+
+  build-system = [
+    setuptools
+    setuptools-rust
+    pyvex
+  ];
 
   dependencies = [
-    ailment
     archinfo
     cachetools
     capstone
     cffi
     claripy
     cle
-    cppheaderparser
     cxxheaderparser
-    dpkt
     gitpython
-    itanium-demangler
+    lmdb
+    msgspec
     mulpyplexer
-    nampa
     networkx
-    progressbar2
+    pypcode
     protobuf
     psutil
     pycparser
@@ -78,14 +94,20 @@ buildPythonPackage rec {
     pydemumble
     pyvex
     rich
-    rpyc
     sortedcontainers
     sympy
+    typing-extensions
     unique-log-filter
+  ];
+
+  pythonRelaxDeps = [
+    "capstone"
   ];
 
   optional-dependencies = {
     angrdb = [ sqlalchemy ];
+    keystone = [ keystone-engine ];
+    telemetry = [ opentelemetry-api ];
     unicorn = [ unicorn-angr ];
   };
 
@@ -93,6 +115,11 @@ buildPythonPackage rec {
     "--plat-name"
     "linux"
   ];
+
+  postFixup = ''
+    wrapProgram $out/bin/angr \
+      --set PYTHONPATH "${python.pkgs.makePythonPath dependencies}:$out/${python.sitePackages}"
+  '';
 
   # Tests have additional requirements, e.g., pypcode and angr binaries
   # cle is executing the tests with the angr binaries

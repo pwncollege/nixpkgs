@@ -1,30 +1,35 @@
 {
   lib,
   archinfo,
+  arpy,
   buildPythonPackage,
   cart,
-  cffi,
   fetchFromGitHub,
+  minidump,
   pefile,
   pyelftools,
   pytestCheckHook,
+  pythonRelaxDepsHook,
   pythonOlder,
   pyvex,
+  pyxbe,
+  pyxdia,
   setuptools,
   sortedcontainers,
+  uefi-firmware,
   nix-update-script,
 }:
 
 let
   # The binaries are following the argr projects release cycle
-  version = "9.2.154";
+  version = "9.2.196";
 
   # Binary files from https://github.com/angr/binaries (only used for testing and only here)
   binaries = fetchFromGitHub {
     owner = "angr";
     repo = "binaries";
     tag = "v${version}";
-    hash = "sha256-XXJBySIT3ylK1nd3suP2bq4bVSVah/1XhOmkEONbCoY=";
+    hash = "sha256-bdaoerggCGMpofH5cee4UQ22PDurAd0DbmzMsAqPHWM=";
   };
 in
 buildPythonPackage rec {
@@ -32,26 +37,34 @@ buildPythonPackage rec {
   inherit version;
   pyproject = true;
 
-  disabled = pythonOlder "3.11";
+  disabled = pythonOlder "3.10";
 
   src = fetchFromGitHub {
     owner = "angr";
     repo = "cle";
     tag = "v${version}";
-    hash = "sha256-rWbZzm5hWi/C+te8zeQChxqYHO0S795tJ6Znocq9TTs=";
+    hash = "sha256-DtnnLmX8wb0IR6dGBEMJr8RIVqdDF2Ia8fEL5E7pEOg=";
   };
 
   build-system = [ setuptools ];
 
   dependencies = [
+    arpy
     archinfo
     cart
-    cffi
+    minidump
     pefile
     pyelftools
     pyvex
+    pyxbe
+    pyxdia
     sortedcontainers
+    uefi-firmware
   ];
+
+  pythonRelaxDeps = [ "arpy" ];
+
+  nativeBuildInputs = [ pythonRelaxDepsHook ];
 
   nativeCheckInputs = [ pytestCheckHook ];
 
